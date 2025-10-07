@@ -1,4 +1,4 @@
-import { Cl } from "@stacks/transactions";
+import { Cl, cvToJSON } from "@stacks/transactions";
 import { beforeEach, describe, expect, it } from "vitest";
 
 const accounts = simnet.getAccounts();
@@ -109,6 +109,41 @@ describe("AMM Tests", () => {
     expect(result).toBeOk(Cl.bool(true));
     expect(events[0].data.amount).toBe("100000");
     expect(events[1].data.amount).toBe("43183");
+  });
+
+  it("returns swap quotes that match actual swap output", () => {
+    createPool();
+    addLiquidity(alice, 1_000_000, 500_000);
+
+    const inputAmount = 100_000;
+    const quoteResult = simnet.callReadOnlyFn(
+      "amm",
+      "get-swap-quote",
+      [
+        mockTokenOne,
+        mockTokenTwo,
+        Cl.uint(500),
+        Cl.uint(inputAmount),
+        Cl.bool(true),
+      ],
+      alice
+    );
+
+    const quoteJson = cvToJSON(quoteResult.result);
+    expect(quoteJson.success).toBe(true);
+
+    const quoteData = quoteJson.value.value as Record<string, { value: string }>;
+    const quotedOutput = parseInt(quoteData["output-amount"].value, 10);
+    const quotedFee = parseInt(quoteData["fee-amount"].value, 10);
+
+    expect(quotedOutput).toBeGreaterThan(0);
+    expect(quotedFee).toBeGreaterThan(0);
+
+    const swapResult = swap(alice, inputAmount, true);
+    expect(swapResult.result).toBeOk(Cl.bool(true));
+
+    const actualOutput = parseInt(swapResult.events[1].data.amount);
+    expect(actualOutput).toBe(quotedOutput);
   });
 
   it("should distribute fees earned amongst LPs", () => {

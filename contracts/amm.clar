@@ -18,6 +18,7 @@
 (define-constant ERR_INSUFFICIENT_LIQUIDITY_FOR_SWAP (err u206)) ;; insufficient liquidity in pool for swap
 (define-constant ERR_INSUFFICIENT_1_AMOUNT (err u207)) ;; insufficient amount of token 1 for swap
 (define-constant ERR_INSUFFICIENT_0_AMOUNT (err u208)) ;; insufficient amount of token 0 for swap
+(define-constant ERR_POOL_NOT_FOUND (err u209)) ;; pool does not exist
 
 ;; mappings
 (define-map pools
@@ -345,6 +346,48 @@
         )
 
         (ok (get liquidity existing-owner-liquidity))
+    )
+)
+
+
+;; get-swap-quote
+;; Provides a preview of the output amount and fee for a swap without executing it
+(define-read-only (get-swap-quote (token-0 <ft-trait>) (token-1 <ft-trait>) (fee uint) (input-amount uint) (zero-for-one bool))
+    (let
+        (
+            (pool-info {
+                token-0: token-0,
+                token-1: token-1,
+                fee: fee
+            })
+            (pool-id (get-pool-id pool-info))
+            (pool-data (unwrap! (map-get? pools pool-id) ERR_POOL_NOT_FOUND))
+            (balance-0 (get balance-0 pool-data))
+            (balance-1 (get balance-1 pool-data))
+        )
+
+        ;; swaps require a positive input amount and existing liquidity in the pool
+        (asserts! (> input-amount u0) ERR_INSUFFICIENT_INPUT_AMOUNT)
+        (asserts! (> balance-0 u0) ERR_INSUFFICIENT_LIQUIDITY_FOR_SWAP)
+        (asserts! (> balance-1 u0) ERR_INSUFFICIENT_LIQUIDITY_FOR_SWAP)
+
+        (let
+            (
+                (input-balance (if zero-for-one balance-0 balance-1))
+                (output-balance (if zero-for-one balance-1 balance-0))
+                (k (* balance-0 balance-1))
+                (output-amount (- output-balance (/ k (+ input-balance input-amount))))
+                (fee-amount (/ (* output-amount fee) FEES_DENOM))
+                (net-output (- output-amount fee-amount))
+            )
+
+            ;; ensure the preview delivers some tokens back after fees
+            (asserts! (> net-output u0) ERR_INSUFFICIENT_LIQUIDITY_FOR_SWAP)
+            (ok {
+                output-amount: net-output,
+                fee-amount: fee-amount
+            })
+        )
     )
 )
 
