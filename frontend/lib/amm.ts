@@ -12,9 +12,11 @@ import {
   UIntCV,
 } from "@stacks/transactions";
 
-const AMM_CONTRACT_ADDRESS = "ST3P49R8XXQWG69S66MZASYPTTGNDKK0WW32RRJDN";
-const AMM_CONTRACT_NAME = "amm";
-const AMM_CONTRACT_PRINCIPAL = `${AMM_CONTRACT_ADDRESS}.${AMM_CONTRACT_NAME}`;
+
+//  Exported to be used in other files
+export const AMM_CONTRACT_ADDRESS = "ST3P49R8XXQWG69S66MZASYPTTGNDKK0WW32RRJDN";
+export const AMM_CONTRACT_NAME = "amm";
+export const AMM_CONTRACT_PRINCIPAL = `${AMM_CONTRACT_ADDRESS}.${AMM_CONTRACT_NAME}`;
 
 type ContractEvent = {
   event_index: number;
