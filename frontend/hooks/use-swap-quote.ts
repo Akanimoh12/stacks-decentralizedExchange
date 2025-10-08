@@ -25,8 +25,8 @@ export interface UseSwapQuoteResult {
   error: string | null;
 }
 
-// useSwapQuote calls the read-only `get-swap-quote` helper so users can preview swap results.
-// The hook keeps a tiny loading/error state so UIs can react instantly to quote requests.
+// useSwapQuote hits the read-only contract function and gives the UI
+// just enough state to show a preview, a spinner, or an error banner.
 
 export function useSwapQuote(
   pool: Pool | null,
@@ -40,8 +40,11 @@ export function useSwapQuote(
   useEffect(() => {
     let cancelled = false;
 
+    // wrap the async work so we can re-run it whenever inputs change
+
     async function fetchQuote() {
       if (!pool || amountIn <= 0) {
+        // no pool chosen or zero input means nothing to preview
         setQuote(null);
         setError(null);
         return;
@@ -51,6 +54,7 @@ export function useSwapQuote(
         setIsLoading(true);
         setError(null);
 
+        // call the Clarity function exactly the same way the frontend submits swaps
         const result = await fetchCallReadOnlyFunction({
           contractAddress: AMM_CONTRACT_ADDRESS,
           contractName: AMM_CONTRACT_NAME,
@@ -72,6 +76,7 @@ export function useSwapQuote(
           throw new Error("Could not retrieve swap quote");
         }
 
+        // unpack the tuple that comes back from Clarity
         const tuple = result.value.value;
         const output = tuple["output-amount"];
         const fee = tuple["fee-amount"];
@@ -80,6 +85,7 @@ export function useSwapQuote(
           throw new Error("Unexpected quote return shape");
         }
 
+        // normalise everything to bigint so the UI can do math safely
         setQuote({
           outputAmount: BigInt(output.value.toString()),
           feeAmount: BigInt(fee.value.toString()),
@@ -98,6 +104,7 @@ export function useSwapQuote(
     fetchQuote();
 
     return () => {
+      // guard against state updates once the component unmounts
       cancelled = true;
     };
   }, [pool, amountIn, zeroForOne]);

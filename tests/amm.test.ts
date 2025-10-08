@@ -116,6 +116,7 @@ describe("AMM Tests", () => {
     addLiquidity(alice, 1_000_000, 500_000);
 
     const inputAmount = 100_000;
+    // ask the read-only helper what the swap would return
     const quoteResult = simnet.callReadOnlyFn(
       "amm",
       "get-swap-quote",
@@ -132,6 +133,7 @@ describe("AMM Tests", () => {
     const quoteJson = cvToJSON(quoteResult.result);
     expect(quoteJson.success).toBe(true);
 
+    // convert the clarity tuple into something easy to compare
     const quoteData = quoteJson.value.value as Record<string, { value: string }>;
     const quotedOutput = parseInt(quoteData["output-amount"].value, 10);
     const quotedFee = parseInt(quoteData["fee-amount"].value, 10);
@@ -139,6 +141,7 @@ describe("AMM Tests", () => {
     expect(quotedOutput).toBeGreaterThan(0);
     expect(quotedFee).toBeGreaterThan(0);
 
+    // now run the actual swap and confirm the numbers match
     const swapResult = swap(alice, inputAmount, true);
     expect(swapResult.result).toBeOk(Cl.bool(true));
 
