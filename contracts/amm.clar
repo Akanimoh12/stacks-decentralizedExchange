@@ -355,13 +355,17 @@
 (define-read-only (get-swap-quote (token-0 <ft-trait>) (token-1 <ft-trait>) (fee uint) (input-amount uint) (zero-for-one bool))
     (let
         (
+            ;; collect the basic pool info so we can reuse the same hashing logic
             (pool-info {
                 token-0: token-0,
                 token-1: token-1,
                 fee: fee
             })
+            ;; this is the same pool-id we use everywhere else in the AMM
             (pool-id (get-pool-id pool-info))
+            ;; if the pool has never been created we bail out early
             (pool-data (unwrap! (map-get? pools pool-id) ERR_POOL_NOT_FOUND))
+            ;; current reserves that power the x*y=k math
             (balance-0 (get balance-0 pool-data))
             (balance-1 (get balance-1 pool-data))
         )
@@ -373,11 +377,16 @@
 
         (let
             (
+                ;; figure out which side of the pool we are selling into / buying from
                 (input-balance (if zero-for-one balance-0 balance-1))
                 (output-balance (if zero-for-one balance-1 balance-0))
+                ;; preserve the constant product before touching reserves
                 (k (* balance-0 balance-1))
+                ;; solve for how many tokens would come out on the other side
                 (output-amount (- output-balance (/ k (+ input-balance input-amount))))
+                ;; fees follow the same percentage the live swap charges
                 (fee-amount (/ (* output-amount fee) FEES_DENOM))
+                ;; this is what the trader actually sees after fees
                 (net-output (- output-amount fee-amount))
             )
 

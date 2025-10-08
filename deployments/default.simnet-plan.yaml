@@ -68,6 +68,12 @@ plan:
       transactions: []
       epoch: "2.1"
     - id: 5
+      transactions: []
+      epoch: "2.1"
+    - id: 6
+      transactions: []
+      epoch: "2.1"
+    - id: 7
       transactions:
         - emulated-contract-publish:
             contract-name: mock-token-2
@@ -75,16 +81,22 @@ plan:
             path: contracts/mock-token.clar
             clarity-version: 2
       epoch: "2.5"
-    - id: 6
-      transactions: []
-      epoch: "2.5"
-    - id: 7
-      transactions: []
-      epoch: "2.5"
     - id: 8
       transactions: []
       epoch: "2.5"
     - id: 9
+      transactions: []
+      epoch: "2.5"
+    - id: 10
+      transactions: []
+      epoch: "2.5"
+    - id: 11
+      transactions: []
+      epoch: "2.5"
+    - id: 12
+      transactions: []
+      epoch: "2.5"
+    - id: 13
       transactions:
         - emulated-contract-publish:
             contract-name: amm
@@ -97,12 +109,18 @@ plan:
             path: contracts/mock-token.clar
             clarity-version: 3
       epoch: "3.0"
-    - id: 10
+    - id: 14
       transactions: []
       epoch: "3.0"
-    - id: 11
+    - id: 15
       transactions: []
       epoch: "3.0"
-    - id: 12
+    - id: 16
+      transactions: []
+      epoch: "3.0"
+    - id: 17
+      transactions: []
+      epoch: "3.0"
+    - id: 18
       transactions: []
       epoch: "3.0"
